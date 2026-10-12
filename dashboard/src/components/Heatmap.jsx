@@ -92,8 +92,13 @@ export default function Heatmap() {
     heatCanvas.height = height;
     const heatCtx = heatCanvas.getContext('2d');
 
+    // Set additive blending so overlapping clicks produce intense heat spots
+    heatCtx.globalCompositeOperation = 'lighter';
+
     // Draw radial alpha spots for each click with coordinate normalization
     clickData.forEach((click) => {
+      if (click.x == null || click.y == null) return;
+
       // Coordinate normalization: scale relative to the recorded viewport
       const vpWidth = click.viewport_width || width;
       const vpHeight = click.viewport_height || height;
@@ -157,6 +162,7 @@ export default function Heatmap() {
     // 5. Optionally draw discrete click dots with target crosshairs
     if (showPoints) {
       clickData.forEach((click, idx) => {
+        if (click.x == null || click.y == null) return;
         const vpWidth = click.viewport_width || width;
         const vpHeight = click.viewport_height || height;
         const normX = (click.x / vpWidth) * width;
@@ -257,6 +263,7 @@ export default function Heatmap() {
     let minDist = 30;
 
     clickData.forEach((click) => {
+      if (click.x == null || click.y == null) return;
       const vpWidth = click.viewport_width || canvas.width;
       const vpHeight = click.viewport_height || canvas.height;
       const normX = (click.x / vpWidth) * canvas.width;

@@ -32,8 +32,23 @@ def create_app(config=None):
         app.config.update(config)
 
     # ---- CORS ----
-    # Allow the React dashboard (and demo page) to call our API
-    CORS(app, origins=Config.CORS_ORIGINS)
+    # Allow any website embedding tracker.js to POST to /api/events
+    # Allow dashboard origins to read analytical APIs
+    CORS(
+        app,
+        resources={
+            r"/api/events": {
+                "origins": "*",
+                "methods": ["POST", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+            },
+            r"/api/*": {
+                "origins": Config.CORS_ORIGINS,
+                "methods": ["GET", "POST", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+            },
+        },
+    )
 
     # ---- MongoDB connection ----
     if "DB" not in app.config:

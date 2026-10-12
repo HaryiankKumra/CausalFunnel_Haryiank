@@ -127,20 +127,28 @@
   <div class="status-bar" id="status-bar">
     <span class="status-dot"></span>
     Tracking active &mdash; Session: <code id="session-display">loading...</code>
+    &mdash; Clicks tracked: <code id="clicks-count">0</code>
   </div>
 
   <!-- Tracking Script — embedded just like on any real website -->
   <script src="../tracker/tracker.js" data-api-url="http://localhost:5000"></script>
 
-  <!-- Show session ID in the status bar -->
+  <!-- Show session ID & live click counter in status bar -->
   <script>
     (function () {
+      var clickCount = 0;
       try {
         var sid = localStorage.getItem("analytics_session_id") || "unknown";
         document.getElementById("session-display").textContent = sid;
       } catch (e) {
         document.getElementById("session-display").textContent = "unavailable";
       }
+
+      document.addEventListener("click", function () {
+        clickCount++;
+        var countEl = document.getElementById("clicks-count");
+        if (countEl) countEl.textContent = clickCount;
+      }, { passive: true });
     })();
   </script>
 </body>

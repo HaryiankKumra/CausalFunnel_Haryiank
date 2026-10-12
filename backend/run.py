@@ -21,4 +21,4 @@ app = create_app()
 if __name__ == "__main__":
     print(f"[*] Analytics API running on http://localhost:{Config.PORT}")
     print(f"[*] Health check: http://localhost:{Config.PORT}/api/health")
-    app.run(host="0.0.0.0", port=Config.PORT, debug=Config.DEBUG)
+    app.run(host="0.0.0.0", port=Config.PORT, debug=Config.DEBUG, use_reloader=False)

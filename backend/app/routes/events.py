@@ -25,6 +25,15 @@ def create_event():
     # Parse JSON body
     data = request.get_json(silent=True)
     if data is None:
+        try:
+            import json
+            raw_text = request.get_data(as_text=True)
+            if raw_text:
+                data = json.loads(raw_text)
+        except Exception:
+            pass
+
+    if data is None:
         return jsonify({"error": "Request body must be valid JSON."}), 400
 
     # Validate

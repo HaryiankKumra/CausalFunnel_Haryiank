@@ -100,10 +100,13 @@ def get_session_events(db, session_id):
 def get_heatmap_data(db, page_url):
     """
     Return click events for a specific page URL.
-    Only returns fields needed for heatmap rendering.
+    Matches exact URL or URL with anchor fragments.
     """
+    import re
+    clean_url = page_url.split("#")[0].rstrip("/")
+    url_pattern = re.compile(rf"^{re.escape(clean_url)}(/|#.*)?$")
     cursor = get_collection(db).find(
-        {"page_url": page_url, "event_type": "click"},
+        {"page_url": {"$regex": url_pattern}, "event_type": "click"},
         {
             "_id": 0,
             "x": 1,
@@ -117,8 +120,10 @@ def get_heatmap_data(db, page_url):
 
 
 def get_distinct_page_urls(db):
-    """Return a list of distinct page URLs that have tracked events."""
-    return get_collection(db).distinct("page_url")
+    """Return a list of distinct cleaned page URLs that have tracked events."""
+    raw_urls = get_collection(db).distinct("page_url")
+    cleaned = sorted(list(set(u.split("#")[0] for u in raw_urls if u)))
+    return cleaned
 
 
 def get_overview_stats(db):

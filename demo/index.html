@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Demo Page</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1>Demo Analytics Page</h1>
+      <p class="subtitle">Click around to generate tracking events</p>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container">
+      <a href="#" class="nav-link active">Home</a>
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#pricing" class="nav-link">Pricing</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h2>Welcome to Our Product</h2>
+      <p>This is a demo page designed to test the analytics tracking script. Every click you make is recorded and sent to the backend.</p>
+      <div class="cta-buttons">
+        <button class="btn btn-primary" id="btn-get-started">Get Started</button>
+        <button class="btn btn-secondary" id="btn-learn-more">Learn More</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2>Features</h2>
+      <div class="card-grid">
+        <div class="card" id="card-analytics">
+          <div class="card-icon">&#128202;</div>
+          <h3>Real-time Analytics</h3>
+          <p>Track every interaction as it happens with our powerful analytics engine.</p>
+          <button class="btn btn-outline" id="btn-analytics">Explore</button>
+        </div>
+        <div class="card" id="card-heatmaps">
+          <div class="card-icon">&#128293;</div>
+          <h3>Click Heatmaps</h3>
+          <p>Visualize where users click to optimize your page layout.</p>
+          <button class="btn btn-outline" id="btn-heatmaps">View Demo</button>
+        </div>
+        <div class="card" id="card-sessions">
+          <div class="card-icon">&#128100;</div>
+          <h3>Session Tracking</h3>
+          <p>Follow user journeys across pages and understand behaviour patterns.</p>
+          <button class="btn btn-outline" id="btn-sessions">Learn More</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <h2>Pricing</h2>
+      <div class="card-grid">
+        <div class="card pricing-card">
+          <h3>Free</h3>
+          <p class="price">$0<span>/mo</span></p>
+          <ul>
+            <li>1,000 events/month</li>
+            <li>Basic heatmaps</li>
+            <li>7-day history</li>
+          </ul>
+          <button class="btn btn-outline" id="btn-free">Choose Free</button>
+        </div>
+        <div class="card pricing-card featured">
+          <h3>Pro</h3>
+          <p class="price">$29<span>/mo</span></p>
+          <ul>
+            <li>100,000 events/month</li>
+            <li>Advanced heatmaps</li>
+            <li>90-day history</li>
+          </ul>
+          <button class="btn btn-primary" id="btn-pro">Choose Pro</button>
+        </div>
+        <div class="card pricing-card">
+          <h3>Enterprise</h3>
+          <p class="price">$99<span>/mo</span></p>
+          <ul>
+            <li>Unlimited events</li>
+            <li>Custom dashboards</li>
+            <li>Unlimited history</li>
+          </ul>
+          <button class="btn btn-outline" id="btn-enterprise">Contact Sales</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <h2>Get in Touch</h2>
+      <div class="contact-grid">
+        <a href="#" class="contact-link" id="link-email">Email Us</a>
+        <a href="#" class="contact-link" id="link-twitter">Twitter</a>
+        <a href="#" class="contact-link" id="link-github">GitHub</a>
+        <a href="#" class="contact-link" id="link-docs">Documentation</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 Analytics Demo &mdash; Built for CausalFunnel assignment</p>
+    </div>
+  </footer>
+
+  <!-- Status indicator -->
+  <div class="status-bar" id="status-bar">
+    <span class="status-dot"></span>
+    Tracking active &mdash; Session: <code id="session-display">loading...</code>
+  </div>
+
+  <!-- Tracking Script — embedded just like on any real website -->
+  <script src="../tracker/tracker.js" data-api-url="http://localhost:5000"></script>
+
+  <!-- Show session ID in the status bar -->
+  <script>
+    (function () {
+      try {
+        var sid = localStorage.getItem("analytics_session_id") || "unknown";
+        document.getElementById("session-display").textContent = sid;
+      } catch (e) {
+        document.getElementById("session-display").textContent = "unavailable";
+      }
+    })();
+  </script>
+</body>
+</html>

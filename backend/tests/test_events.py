@@ -87,3 +87,33 @@ def test_post_click_missing_coordinates(client):
     assert response.status_code == 400
     data = response.get_json()
     assert "error" in data
+
+
+def test_post_click_rejects_invalid_coordinates(client):
+    """Coordinates must be finite and remain within the recorded viewport."""
+    payload = {
+        "session_id": "sess_bad_coords",
+        "event_type": "click",
+        "page_url": "https://example.com/test",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "x": 1400,
+        "y": 100,
+        "viewport_width": 1280,
+        "viewport_height": 800,
+    }
+    response = client.post("/api/events", json=payload)
+    assert response.status_code == 400
+    assert "viewport width" in response.get_json()["error"]
+
+
+def test_post_rejects_oversized_identifiers(client):
+    """The API bounds identifiers before they reach MongoDB."""
+    payload = {
+        "session_id": "s" * 129,
+        "event_type": "page_view",
+        "page_url": "https://example.com",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    response = client.post("/api/events", json=payload)
+    assert response.status_code == 400
+    assert "128 characters" in response.get_json()["error"]

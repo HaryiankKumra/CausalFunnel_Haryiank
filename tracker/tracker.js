@@ -19,9 +19,9 @@
   const scriptTag = document.currentScript;
   const API_URL =
     (scriptTag && scriptTag.getAttribute("data-api-url")) ||
-    "http://localhost:5000";
+    (typeof window !== "undefined" ? window.location.origin : "http://localhost:5000");
 
-  const EVENTS_ENDPOINT = API_URL + "/api/events";
+  const EVENTS_ENDPOINT = API_URL.replace(/\/+$/, "") + "/api/events";
 
   // ============================================================
   // Session Management
@@ -102,15 +102,22 @@
   // ============================================================
 
   function trackPageView() {
-    sendEvent({
-      session_id: sessionId,
-      event_type: "page_view",
-      page_url: getCleanPageUrl(),
-      timestamp: new Date().toISOString(),
+    track("page_view", {
       x: null,
       y: null,
       viewport_width: window.innerWidth,
       viewport_height: window.innerHeight,
+    });
+  }
+
+  function track(eventType, details) {
+    if (eventType !== "page_view" && eventType !== "click") return;
+    sendEvent({
+      session_id: sessionId,
+      event_type: eventType,
+      page_url: getCleanPageUrl(),
+      timestamp: new Date().toISOString(),
+      ...details,
     });
   }
 
@@ -119,11 +126,7 @@
   // ============================================================
 
   function trackClick(event) {
-    sendEvent({
-      session_id: sessionId,
-      event_type: "click",
-      page_url: getCleanPageUrl(),
-      timestamp: new Date().toISOString(),
+    track("click", {
       x: Math.round(event.clientX),
       y: Math.round(event.clientY),
       viewport_width: window.innerWidth,
@@ -137,6 +140,14 @@
 
   if (window.__analytics_tracker_loaded) return;
   window.__analytics_tracker_loaded = true;
+
+  // Expose a tiny integration surface for SPAs and custom interaction hooks.
+  window.CausalPulseTracker = {
+    getSessionId: function () {
+      return sessionId;
+    },
+    track: track,
+  };
 
   trackPageView();
   document.addEventListener("click", trackClick, { passive: true });

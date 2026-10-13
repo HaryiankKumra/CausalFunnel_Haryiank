@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: causal-pulse-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers 2 --bind 0.0.0.0:$PORT "app:create_app()"
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: user_analytics
+      - key: CORS_ORIGINS
+        value: https://causal-pulse-dashboard.onrender.com
+
+  - type: static
+    name: causal-pulse-dashboard
+    rootDir: dashboard
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://causal-pulse-api.onrender.com
+      - key: VITE_DEMO_URL
+        value: https://causal-pulse-api.onrender.com/demo/index.html

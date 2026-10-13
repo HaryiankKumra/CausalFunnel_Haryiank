@@ -1,5 +1,7 @@
 import React from 'react';
 
+const demoUrl = import.meta.env.VITE_DEMO_URL || 'http://localhost:5500/demo/index.html';
+
 export default function Navbar({ activeTab, setActiveTab, healthStatus, onRefresh }) {
   return (
     <header className="navbar">
@@ -43,7 +45,7 @@ export default function Navbar({ activeTab, setActiveTab, healthStatus, onRefres
 
         <div className="nav-actions">
           <a
-            href="http://localhost:5500/demo/index.html"
+            href={demoUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="demo-link-btn"

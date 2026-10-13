@@ -4,6 +4,7 @@ Keeps validation logic separate from routes for clarity and testability.
 """
 
 from datetime import datetime
+import math
 
 # Only these event types are accepted
 VALID_EVENT_TYPES = {"page_view", "click"}
@@ -35,6 +36,8 @@ def validate_event(data):
     session_id = data.get("session_id")
     if not isinstance(session_id, str) or not session_id.strip():
         return None, "session_id must be a non-empty string."
+    if len(session_id.strip()) > 128:
+        return None, "session_id must be 128 characters or fewer."
 
     # --- Validate event_type ---
     event_type = data.get("event_type")
@@ -45,6 +48,8 @@ def validate_event(data):
     page_url = data.get("page_url")
     if not isinstance(page_url, str) or not page_url.strip():
         return None, "page_url must be a non-empty string."
+    if len(page_url.strip()) > 2048:
+        return None, "page_url must be 2048 characters or fewer."
 
     # --- Validate timestamp (ISO 8601) ---
     timestamp_str = data.get("timestamp")
@@ -71,14 +76,28 @@ def validate_event(data):
             value = data.get(field)
             if value is None:
                 return None, f"click events require the field: {field}"
-            if not isinstance(value, (int, float)):
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
                 return None, f"{field} must be a number."
+            if not math.isfinite(value):
+                return None, f"{field} must be a finite number."
             event[field] = value
+        if event["viewport_width"] <= 0 or event["viewport_height"] <= 0:
+            return None, "viewport dimensions must be greater than zero."
+        if not 0 <= event["x"] <= event["viewport_width"]:
+            return None, "x must be within the viewport width."
+        if not 0 <= event["y"] <= event["viewport_height"]:
+            return None, "y must be within the viewport height."
     else:
         # page_view events: coordinates should be null
         event["x"] = None
         event["y"] = None
-        event["viewport_width"] = data.get("viewport_width")
-        event["viewport_height"] = data.get("viewport_height")
+        for field in ("viewport_width", "viewport_height"):
+            value = data.get(field)
+            if value is not None:
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    return None, f"{field} must be a number."
+                if not math.isfinite(value) or value <= 0:
+                    return None, f"{field} must be a finite number greater than zero."
+            event[field] = value
 
     return event, None

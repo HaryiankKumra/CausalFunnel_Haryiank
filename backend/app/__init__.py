@@ -8,7 +8,9 @@ Why a factory?
 - This pattern is a common Flask interview topic
 """
 
-from flask import Flask, jsonify
+from pathlib import Path
+
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
 
@@ -43,7 +45,7 @@ def create_app(config=None):
                 "allow_headers": ["Content-Type", "Authorization"],
             },
             r"/api/*": {
-                "origins": Config.CORS_ORIGINS,
+                "origins": app.config.get("CORS_ORIGINS", Config.CORS_ORIGINS),
                 "methods": ["GET", "POST", "OPTIONS"],
                 "allow_headers": ["Content-Type", "Authorization"],
             },
@@ -101,5 +103,34 @@ def create_app(config=None):
     app.register_blueprint(events_bp)
     app.register_blueprint(sessions_bp)
     app.register_blueprint(heatmap_bp)
+
+    # Replit can run the API and the built dashboard as one public service.
+    project_root = Path(__file__).resolve().parents[2]
+    dashboard_dist = project_root / "dashboard" / "dist"
+    demo_root = project_root / "demo"
+    tracker_root = project_root / "tracker"
+
+    @app.route("/")
+    def dashboard_index():
+        if not dashboard_dist.exists():
+            return jsonify({"error": "Dashboard is not built. Run npm --prefix dashboard run build."}), 503
+        return send_from_directory(dashboard_dist, "index.html")
+
+    @app.route("/demo/<path:filename>")
+    def demo_file(filename):
+        return send_from_directory(demo_root, filename)
+
+    @app.route("/tracker/<path:filename>")
+    def tracker_file(filename):
+        return send_from_directory(tracker_root, filename)
+
+    @app.route("/<path:filename>")
+    def dashboard_assets(filename):
+        requested_file = dashboard_dist / filename
+        if requested_file.is_file():
+            return send_from_directory(dashboard_dist, filename)
+        if "." not in Path(filename).name and dashboard_dist.exists():
+            return send_from_directory(dashboard_dist, "index.html")
+        return jsonify({"error": "Not found."}), 404
 
     return app

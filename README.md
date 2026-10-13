@@ -517,6 +517,22 @@ Simply include the script tag before the closing `</body>` tag on any HTML page:
 ### Configuration Options
 - **`data-api-url`**: Specify your backend API host URL. Defaults to `http://localhost:5000` if omitted.
 
+After loading, the tracker exposes a small integration API for single-page applications:
+
+```js
+window.CausalPulseTracker.getSessionId();
+window.CausalPulseTracker.track("click", {
+  x: 320,
+  y: 180,
+  viewport_width: window.innerWidth,
+  viewport_height: window.innerHeight
+});
+```
+
+Only `page_view` and `click` events are accepted. The backend rejects oversized identifiers,
+non-finite numbers, invalid viewport dimensions, and click coordinates outside the recorded
+viewport before writing to MongoDB.
+
 ### Key Implementation Techniques
 - **IIFE Scope Isolation**: Wrapped in an immediately invoked function expression to prevent polluting the host webpage's global scope.
 - **Double-Initialization Guard**: `window.__analytics_tracker_loaded` protects against accidental multiple script embeds.
@@ -581,11 +597,11 @@ Validates:
 
 ### B. Backend (Render / Railway / Fly.io)
 1. Connect your GitHub repository to [Render](https://render.com) or [Railway](https://railway.app).
-2. Configure environment:
-   - **Build Command**: `pip install -r backend/requirements.txt`
+2. Set the service root directory to `backend`.
+3. Configure environment:
+   - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn -w 2 -b 0.0.0.0:$PORT "app:create_app()"`
-   - Add production Gunicorn dependency (`pip install gunicorn`).
-3. Set Environment Variables:
+4. Set Environment Variables:
    - `MONGO_URI`: Atlas connection string
    - `MONGO_DB_NAME`: `user_analytics`
    - `CORS_ORIGINS`: Your production frontend domain URL (e.g. `https://my-dashboard.vercel.app`)
@@ -595,7 +611,39 @@ Validates:
 2. Set Root Directory to `dashboard`.
 3. Set Environment Variable:
    - `VITE_API_URL`: Your deployed backend URL (e.g. `https://my-analytics-api.onrender.com`).
+   - `VITE_DEMO_URL`: The public URL where `demo/index.html` is hosted.
 4. Vercel automatically runs `npm run build` and serves the production static bundle.
+
+### D. Demo page and tracker
+Host the repository's `demo/` and `tracker/` directories as static files using Netlify,
+Cloudflare Pages, or GitHub Pages. Update the demo's tracker tag so `data-api-url` points to
+the deployed backend, then set the demo URL as `VITE_DEMO_URL` in the dashboard deployment.
+
+### E. Render Blueprint deployment
+The root [`render.yaml`](./render.yaml) defines the complete Render deployment:
+
+- `causal-pulse-api`: Flask + Gunicorn web service backed by MongoDB Atlas.
+- `causal-pulse-dashboard`: React/Vite static site.
+- The API also serves `/demo/index.html` and `/tracker/tracker.js`, so the demo does not need a
+  third service.
+
+1. Push the repository to GitHub and choose **New → Blueprint** in Render.
+2. Select the repository. Render reads `render.yaml` and creates both services.
+3. Enter your MongoDB Atlas URI when prompted for the `MONGO_URI` secret.
+4. After the first deploy, confirm the generated service URLs. If Render adds a suffix because a
+   name is already taken, update `VITE_API_URL`, `VITE_DEMO_URL`, and `CORS_ORIGINS` in the
+   dashboard/API service settings and redeploy the dashboard.
+5. Verify:
+   - Dashboard: `https://causal-pulse-dashboard.onrender.com`
+   - API health: `https://causal-pulse-api.onrender.com/api/health`
+   - Demo: `https://causal-pulse-api.onrender.com/demo/index.html`
+   - Tracker: `https://causal-pulse-api.onrender.com/tracker/tracker.js`
+
+For a manual Render setup, use `backend` as the API root directory,
+`pip install -r requirements.txt` as the build command, and
+`gunicorn --workers 2 --bind 0.0.0.0:$PORT "app:create_app()"` as the start command. Use
+`dashboard` as the static-site root, `npm ci && npm run build` as its build command, and `dist` as
+the publish directory.
 
 ---
 

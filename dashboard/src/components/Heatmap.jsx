@@ -30,9 +30,9 @@ export default function Heatmap() {
       const data = await getTrackedPages();
       const pageList = data.pages || [];
       setPages(pageList);
-      if (pageList.length > 0) {
-        setSelectedPage(pageList[0]);
-      }
+      setSelectedPage((currentPage) =>
+        pageList.includes(currentPage) ? currentPage : pageList[0] || ''
+      );
     } catch (err) {
       setError(`Failed to fetch tracked pages: ${err.message}`);
     } finally {
@@ -310,6 +310,7 @@ export default function Heatmap() {
                 className="btn-refresh-pages"
                 onClick={loadPages}
                 title="Refresh tracked pages list"
+                aria-label="Refresh tracked pages"
               >
                 ↻
               </button>
@@ -429,6 +430,7 @@ export default function Heatmap() {
             width={1000}
             height={650}
             className="heatmap-canvas"
+            aria-label={`Click heatmap for ${selectedPage || 'tracked pages'}`}
             onMouseMove={handleCanvasMouseMove}
             onMouseLeave={() => setHoveredPoint(null)}
           />

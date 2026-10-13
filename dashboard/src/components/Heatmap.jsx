@@ -50,14 +50,14 @@ export default function Heatmap() {
     } finally {
       setLoadingPages(false);
     }
+  }
 
-    async function loadScores() {
-      try {
-        const data = await getPageScores();
-        setPageScores(data.pages || []);
-      } catch (err) {
-        setError(`Failed to fetch page scores: ${err.message}`);
-      }
+  async function loadScores() {
+    try {
+      const data = await getPageScores();
+      setPageScores(data.pages || []);
+    } catch (err) {
+      setError(`Failed to fetch page scores: ${err.message}`);
     }
   }
 

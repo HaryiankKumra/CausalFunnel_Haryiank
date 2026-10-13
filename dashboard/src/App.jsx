@@ -34,7 +34,7 @@ export default function App() {
   const [journeyError, setJourneyError] = useState(null);
 
   // Auto-refresh interval (every 10s)
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false);
   const [resetting, setResetting] = useState(false);
 
   // Check backend health

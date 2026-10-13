@@ -41,12 +41,12 @@ def create_app(config=None):
         resources={
             r"/api/events": {
                 "origins": "*",
-                "methods": ["POST", "OPTIONS"],
+                "methods": ["POST", "DELETE", "OPTIONS"],
                 "allow_headers": ["Content-Type", "Authorization"],
             },
             r"/api/*": {
                 "origins": app.config.get("CORS_ORIGINS", Config.CORS_ORIGINS),
-                "methods": ["GET", "POST", "OPTIONS"],
+                "methods": ["GET", "POST", "DELETE", "OPTIONS"],
                 "allow_headers": ["Content-Type", "Authorization"],
             },
         },

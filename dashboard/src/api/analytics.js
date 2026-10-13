@@ -58,3 +58,11 @@ export async function getTrackedPages() {
 export async function getHeatmap(pageUrl) {
   return request(`/api/heatmap?page_url=${encodeURIComponent(pageUrl)}`);
 }
+
+export async function getPageScores() {
+  return request('/api/page-scores');
+}
+
+export async function resetAnalytics() {
+  return request('/api/events', { method: 'DELETE' });
+}

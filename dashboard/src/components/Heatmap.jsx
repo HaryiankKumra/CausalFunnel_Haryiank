@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getTrackedPages, getHeatmap } from '../api/analytics';
+import { getTrackedPages, getHeatmap, getPageScores } from '../api/analytics';
 
 export default function Heatmap() {
   const [pages, setPages] = useState([]);
   const [selectedPage, setSelectedPage] = useState('');
   const [clickData, setClickData] = useState([]);
+  const [pageScores, setPageScores] = useState([]);
   const [loadingPages, setLoadingPages] = useState(true);
   const [loadingHeatmap, setLoadingHeatmap] = useState(false);
   const [error, setError] = useState(null);
@@ -12,7 +13,6 @@ export default function Heatmap() {
   // Customization controls
   const [pointRadius, setPointRadius] = useState(28);
   const [intensity, setIntensity] = useState(0.7);
-  const [showWireframe, setShowWireframe] = useState(true);
   const [showPoints, setShowPoints] = useState(false);
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
@@ -21,6 +21,18 @@ export default function Heatmap() {
   // Load available pages on mount
   useEffect(() => {
     loadPages();
+    loadScores();
+  }, []);
+
+  useEffect(() => {
+    const onReset = () => {
+      setClickData([]);
+      setPageScores([]);
+      loadPages();
+      loadScores();
+    };
+    window.addEventListener('causalpulse:reset', onReset);
+    return () => window.removeEventListener('causalpulse:reset', onReset);
   }, []);
 
   async function loadPages() {
@@ -37,6 +49,15 @@ export default function Heatmap() {
       setError(`Failed to fetch tracked pages: ${err.message}`);
     } finally {
       setLoadingPages(false);
+    }
+
+    async function loadScores() {
+      try {
+        const data = await getPageScores();
+        setPageScores(data.pages || []);
+      } catch (err) {
+        setError(`Failed to fetch page scores: ${err.message}`);
+      }
     }
   }
 
@@ -75,14 +96,6 @@ export default function Heatmap() {
 
     // 1. Clear canvas
     ctx.clearRect(0, 0, width, height);
-
-    // 2. Draw mock webpage wireframe background
-    if (showWireframe) {
-      drawMockWebpageWireframe(ctx, width, height);
-    } else {
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, width, height);
-    }
 
     if (!clickData || clickData.length === 0) return;
 
@@ -178,76 +191,11 @@ export default function Heatmap() {
         ctx.stroke();
       });
     }
-  }, [clickData, pointRadius, intensity, showWireframe, showPoints]);
+  }, [clickData, pointRadius, intensity, showPoints]);
 
-  /**
-   * Draw a realistic mock webpage layout background on canvas so clicks
-   * can be visually mapped to UI components (Navbar, Hero CTA, Feature Cards, Pricing).
-   */
-  function drawMockWebpageWireframe(ctx, width, height) {
-    // Canvas background
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(0, 0, width, height);
-
-    // Mock Navbar
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(20, 20, width - 40, 50);
-    ctx.fillStyle = '#64748b';
-    ctx.font = '12px system-ui, sans-serif';
-    ctx.fillText('Demo Webpage Header & Navigation Bar', 40, 50);
-
-    // Mock Hero Section
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(40, 90, width - 80, 160);
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 16px system-ui, sans-serif';
-    ctx.fillText('Hero Title & Description Area', 70, 150);
-
-    // Mock CTA Buttons
-    ctx.fillStyle = '#6366f1';
-    ctx.fillRect(70, 180, 130, 40);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '12px system-ui, sans-serif';
-    ctx.fillText('Get Started CTA', 85, 205);
-
-    ctx.fillStyle = '#475569';
-    ctx.fillRect(220, 180, 130, 40);
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fillText('Learn More', 250, 205);
-
-    // Mock Feature Cards
-    const cardWidth = (width - 120) / 3;
-    for (let i = 0; i < 3; i++) {
-      const cardX = 40 + i * (cardWidth + 20);
-      ctx.fillStyle = '#243247';
-      ctx.fillRect(cardX, 275, cardWidth, 140);
-      ctx.strokeStyle = '#3b4e6b';
-      ctx.strokeRect(cardX, 275, cardWidth, 140);
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText(`Feature Card ${i + 1}`, cardX + 20, 310);
-      ctx.fillStyle = '#4f46e5';
-      ctx.fillRect(cardX + 20, 370, 80, 28);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText('Action', cardX + 40, 388);
-    }
-
-    // Mock Pricing Section
-    for (let i = 0; i < 3; i++) {
-      const cardX = 40 + i * (cardWidth + 20);
-      ctx.fillStyle = '#1c283d';
-      ctx.fillRect(cardX, 435, cardWidth, 140);
-      ctx.strokeStyle = '#384d6e';
-      ctx.strokeRect(cardX, 435, cardWidth, 140);
-      ctx.fillStyle = '#cbd5e1';
-      ctx.fillText(`Plan ${i + 1}`, cardX + 20, 470);
-    }
-
-    // Mock Footer
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(20, height - 55, width - 40, 40);
-    ctx.fillStyle = '#64748b';
-    ctx.fillText('Page Footer & Social Links', 40, height - 30);
-  }
+  const currentScore = pageScores.find((page) => page.page_url === selectedPage);
+  const isDemoPage = selectedPage.includes('/demo/');
+  const demoPreviewUrl = selectedPage ? new URL('preview.svg', selectedPage).href : '';
 
   // Handle Canvas mouse move for inspector tooltip
   function handleCanvasMouseMove(e) {
@@ -322,6 +270,11 @@ export default function Heatmap() {
               <span className="metric-label">Total Clicks:</span>
               <span className="metric-val">{clickData.length}</span>
             </div>
+            <div className="metric-badge score-badge">
+              <span className="metric-label">Engagement score:</span>
+              <strong className="metric-score">{currentScore?.score ?? '—'}</strong>
+              <span className="metric-label">/ 100</span>
+            </div>
             <div className="metric-badge">
               <span className="metric-label">Render Resolution:</span>
               <span className="metric-val">1000 × 650</span>
@@ -361,14 +314,6 @@ export default function Heatmap() {
           </div>
 
           <div className="toggle-group">
-            <label className="toggle-checkbox-label">
-              <input
-                type="checkbox"
-                checked={showWireframe}
-                onChange={(e) => setShowWireframe(e.target.checked)}
-              />
-              Mock Layout Wireframe
-            </label>
             <label className="toggle-checkbox-label">
               <input
                 type="checkbox"
@@ -424,7 +369,11 @@ export default function Heatmap() {
           </div>
         </div>
 
-        <div className="canvas-wrapper">
+        <div
+          className={`canvas-wrapper ${isDemoPage ? 'has-page-preview' : ''}`}
+          style={isDemoPage ? { backgroundImage: `url("${demoPreviewUrl}")` } : undefined}
+        >
+          {!isDemoPage && <div className="preview-placeholder">Live preview unavailable for this URL</div>}
           <canvas
             ref={canvasRef}
             width={1000}

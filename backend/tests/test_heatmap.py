@@ -53,3 +53,46 @@ def test_heatmap_missing_param(client):
     assert res.status_code == 400
     data = res.get_json()
     assert "error" in data
+
+
+def test_page_scores_and_reset(client):
+    """Scores are calculated per page and reset removes collected events."""
+    for page_url, clicks in [
+        ("https://example.com/strong", 3),
+        ("https://example.com/quiet", 1),
+    ]:
+        client.post(
+            "/api/events",
+            json={
+                "session_id": f"sess_{page_url.rsplit('/', 1)[-1]}",
+                "event_type": "page_view",
+                "page_url": page_url,
+                "timestamp": "2026-10-12T03:00:00Z",
+                "viewport_width": 1200,
+                "viewport_height": 800,
+            },
+        )
+        for index in range(clicks):
+            client.post(
+                "/api/events",
+                json={
+                    "session_id": f"sess_{page_url.rsplit('/', 1)[-1]}",
+                    "event_type": "click",
+                    "page_url": page_url,
+                    "timestamp": f"2026-10-12T03:0{index + 1}:00Z",
+                    "x": 100 + index,
+                    "y": 200,
+                    "viewport_width": 1200,
+                    "viewport_height": 800,
+                },
+            )
+
+    scores = client.get("/api/page-scores")
+    assert scores.status_code == 200
+    score_map = {item["page_url"]: item["score"] for item in scores.get_json()["pages"]}
+    assert score_map["https://example.com/strong"] > score_map["https://example.com/quiet"]
+
+    reset = client.delete("/api/events")
+    assert reset.status_code == 200
+    assert reset.get_json()["deleted"] >= 8
+    assert client.get("/api/pages").get_json()["pages"] == []

@@ -4,7 +4,12 @@ GET /api/pages                          — List of tracked page URLs.
 """
 
 from flask import Blueprint, request, jsonify, current_app
-from app.models import get_heatmap_data, get_distinct_page_urls
+from app.models import (
+    delete_all_events,
+    get_distinct_page_urls,
+    get_heatmap_data,
+    get_page_scores,
+)
 
 heatmap_bp = Blueprint("heatmap", __name__)
 
@@ -46,3 +51,25 @@ def list_pages():
     except Exception as e:
         current_app.logger.error(f"Database error: {e}")
         return jsonify({"error": "Failed to retrieve pages."}), 500
+
+
+@heatmap_bp.route("/api/page-scores", methods=["GET"])
+def page_scores():
+    """Return independent engagement scores and supporting metrics by page."""
+    try:
+        scores = get_page_scores(current_app.config["DB"])
+        return jsonify({"pages": scores, "count": len(scores)}), 200
+    except Exception as e:
+        current_app.logger.error(f"Database error: {e}")
+        return jsonify({"error": "Failed to retrieve page scores."}), 500
+
+
+@heatmap_bp.route("/api/events", methods=["DELETE"])
+def reset_events():
+    """Clear all analytics data for the demo workspace."""
+    try:
+        result = delete_all_events(current_app.config["DB"])
+        return jsonify({"deleted": result.deleted_count}), 200
+    except Exception as e:
+        current_app.logger.error(f"Database error while resetting events: {e}")
+        return jsonify({"error": "Failed to reset analytics data."}), 500

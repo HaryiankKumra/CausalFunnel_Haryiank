@@ -139,6 +139,26 @@
   border-color: var(--text-subtle);
 }
 
+.reset-btn {
+  background: transparent;
+  border: 1px solid rgba(251, 113, 133, 0.35);
+  color: #fb7185;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.reset-btn:hover:not(:disabled) {
+  background: rgba(244, 63, 94, 0.14);
+  border-color: #fb7185;
+}
+
+.reset-btn:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .health-badge {
   display: flex;
   align-items: center;
@@ -729,6 +749,15 @@
   font-weight: 700;
 }
 
+.score-badge {
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+.metric-score {
+  color: #5eead4;
+  font-size: 1.1rem;
+}
+
 .sliders-row {
   display: flex;
   gap: 24px;
@@ -843,10 +872,28 @@
   overflow: auto;
 }
 
+.canvas-wrapper.has-page-preview {
+  background-color: #10283c;
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+}
+
+.preview-placeholder {
+  position: absolute;
+  inset: 16px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  background: linear-gradient(135deg, #111827, #1f2937);
+}
+
 .heatmap-canvas {
   display: block;
   max-width: 100%;
   height: auto;
+  background: transparent;
   border-radius: var(--radius-sm);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   cursor: crosshair;

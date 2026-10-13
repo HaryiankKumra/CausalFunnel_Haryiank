@@ -9,6 +9,7 @@ import {
   getOverview,
   getSessions,
   getSessionEvents,
+  resetAnalytics,
 } from './api/analytics';
 import './App.css';
 
@@ -34,6 +35,7 @@ export default function App() {
 
   // Auto-refresh interval (every 10s)
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
   // Check backend health
   const checkHealthStatus = useCallback(async () => {
@@ -83,6 +85,22 @@ export default function App() {
     }
   }, [checkHealthStatus, fetchOverviewData, fetchSessionsData, selectedSessionId]);
 
+  const handleReset = useCallback(async () => {
+    if (!window.confirm('Reset all collected analytics data? This cannot be undone.')) return;
+    setResetting(true);
+    try {
+      await resetAnalytics();
+      setSelectedSessionId(null);
+      setSessionEvents([]);
+      await Promise.all([fetchOverviewData(), fetchSessionsData()]);
+      window.dispatchEvent(new CustomEvent('causalpulse:reset'));
+    } catch (err) {
+      window.alert(`Could not reset analytics: ${err.message}`);
+    } finally {
+      setResetting(false);
+    }
+  }, [fetchOverviewData, fetchSessionsData]);
+
   // Initial load
   useEffect(() => {
     checkHealthStatus();
@@ -129,6 +147,8 @@ export default function App() {
         setActiveTab={setActiveTab}
         healthStatus={healthStatus}
         onRefresh={handleRefresh}
+        onReset={handleReset}
+        resetting={resetting}
       />
 
       <main className="main-content">

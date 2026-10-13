@@ -126,6 +126,45 @@ def get_distinct_page_urls(db):
     return cleaned
 
 
+def get_page_scores(db):
+    """Return independent engagement scores for every tracked page."""
+    pipeline = [
+        {
+            "$group": {
+                "_id": {"$arrayElemAt": [{"$split": ["$page_url", "#"]}, 0]},
+                "page_views": {
+                    "$sum": {"$cond": [{"$eq": ["$event_type", "page_view"]}, 1, 0]}
+                },
+                "clicks": {
+                    "$sum": {"$cond": [{"$eq": ["$event_type", "click"]}, 1, 0]}
+                },
+                "sessions": {"$addToSet": "$session_id"},
+            }
+        },
+        {"$sort": {"clicks": -1, "_id": 1}},
+    ]
+    scores = []
+    for item in get_collection(db).aggregate(pipeline):
+        page_views = item.get("page_views", 0)
+        clicks = item.get("clicks", 0)
+        sessions = len(item.get("sessions", []))
+        click_rate = (clicks / page_views * 100) if page_views else 0
+        score = round(min(100, click_rate * 0.7 + min(clicks, 30) / 30 * 20 + min(sessions, 10) * 1), 1)
+        scores.append({
+            "page_url": item["_id"],
+            "score": score,
+            "page_views": page_views,
+            "clicks": clicks,
+            "sessions": sessions,
+        })
+    return scores
+
+
+def delete_all_events(db):
+    """Clear collected analytics events for a demo reset."""
+    return get_collection(db).delete_many({})
+
+
 def get_overview_stats(db):
     """
     Return aggregate overview stats using a single aggregation pipeline.

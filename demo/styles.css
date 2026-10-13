@@ -311,6 +311,159 @@ section h2 {
   z-index: 1000;
 }
 
+/* Product-style demo skin */
+body {
+  background: #f7faf9;
+  color: #10242e;
+}
+
+.header {
+  background: #0d1f2b;
+  padding: 22px 0 18px;
+  text-align: left;
+}
+
+.header .container {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.header h1 {
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+}
+
+.subtitle {
+  margin-top: 0;
+  color: #9fc0bb;
+  font-size: 0.85rem;
+}
+
+.nav {
+  background: #102b38;
+}
+
+.nav .container {
+  justify-content: flex-end;
+}
+
+.nav-link {
+  padding: 13px 16px;
+  font-size: 0.88rem;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 86px 0 92px;
+  text-align: left;
+  color: white;
+  background: linear-gradient(115deg, #10283c 0%, #1b5360 100%);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  right: 7%;
+  top: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(111, 231, 203, 0.3), transparent 68%);
+}
+
+.hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.hero h2 {
+  max-width: 640px;
+  margin-bottom: 16px;
+  color: white;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+}
+
+.hero p {
+  max-width: 500px;
+  margin: 0 0 30px;
+  color: #c1d8d5;
+}
+
+.btn {
+  border-radius: 999px;
+  padding: 11px 23px;
+  font-size: 0.92rem;
+}
+
+.btn-primary {
+  background: #48ddbd;
+  color: #082b28;
+}
+
+.btn-primary:hover {
+  background: #67e8c9;
+}
+
+.btn-secondary {
+  color: #c2f6e9;
+  border-color: #76b6ac;
+  background: transparent;
+}
+
+.features {
+  padding: 76px 0;
+  background: #f7faf9;
+}
+
+section h2 {
+  margin-bottom: 34px;
+  text-align: left;
+  color: #10242e;
+  letter-spacing: -0.03em;
+}
+
+.card {
+  padding: 28px;
+  border: 1px solid #dce9e6;
+  border-radius: 14px;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(16, 36, 46, 0.06);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 34px rgba(16, 36, 46, 0.1);
+}
+
+.card-icon {
+  margin-bottom: 22px;
+  font-size: 1.8rem;
+}
+
+.card h3 {
+  color: #10242e;
+}
+
+.card p {
+  color: #6c817e;
+}
+
+.pricing {
+  background: white;
+}
+
+.contact {
+  background: #eaf5f1;
+}
+
+.footer {
+  background: #0d1f2b;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;

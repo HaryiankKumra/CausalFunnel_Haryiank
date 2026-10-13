@@ -2,7 +2,14 @@ import React from 'react';
 
 const demoUrl = import.meta.env.VITE_DEMO_URL || 'http://localhost:5500/demo/index.html';
 
-export default function Navbar({ activeTab, setActiveTab, healthStatus, onRefresh }) {
+export default function Navbar({
+  activeTab,
+  setActiveTab,
+  healthStatus,
+  onRefresh,
+  onReset,
+  resetting,
+}) {
   return (
     <header className="navbar">
       <div className="nav-container">
@@ -61,6 +68,14 @@ export default function Navbar({ activeTab, setActiveTab, healthStatus, onRefres
             id="btn-global-refresh"
           >
             ↻ Refresh
+          </button>
+          <button
+            className="reset-btn"
+            onClick={onReset}
+            disabled={resetting}
+            title="Delete all collected demo analytics"
+          >
+            {resetting ? 'Resetting…' : 'Reset data'}
           </button>
 
           <div

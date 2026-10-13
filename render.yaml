@@ -14,7 +14,7 @@ services:
       - key: CORS_ORIGINS
         value: https://causal-pulse-dashboard.onrender.com
 
-  - type: static
+  - type: static_site
     name: causal-pulse-dashboard
     rootDir: dashboard
     buildCommand: npm ci && npm run build
